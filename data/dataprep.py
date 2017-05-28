@@ -5,36 +5,16 @@ from sklearn.model_selection import train_test_split
 
 
 def get_train_test():
-    if os.path.exists('data/_numpydata/train_arr.npy') & os.path.exists('data/_numpydata/test_arr.npy'):
-        return np.load('data/_numpydata/train_arr.npy'), np.load('data/_numpydata/test_arr.npy')
-    else:
-        cols = ['user_id', 'movie_id', 'rating', 'timestamp']
+    cols = ['user_id', 'movie_id', 'rating', 'timestamp']
 
-        rating_df = pd.read_csv('data/ratings.dat', sep='::', names=cols)
+    rating_df = pd.read_csv('data/ml-100k/u.data', sep='\t', names=cols)
 
-        train, test = train_test_split(rating_df, test_size=0.1)
+    train, test = train_test_split(rating_df, test_size=0.1, random_state=1234)
 
-        item_index = dict()
-        user_index = dict()
+    train_matrix = train.pivot(index='movie_id', columns='user_id', values='rating').fillna(0.0)
+    test_matrix = test.pivot(index='movie_id', columns='user_id', values='rating').fillna(0.0)
 
-        for idx, id in enumerate(train.movie_id.drop_duplicates()):
-            item_index[id] = idx
-        for idx, id in enumerate(train.user_id.drop_duplicates()):
-            user_index[id] = idx
+    test_matrix = test_matrix.filter(items=train_matrix.index, axis=0)
+    test_matrix = test_matrix.filter(items=train_matrix.columns, axis=1)
 
-        train_arr = np.zeros(shape=[len(item_index), len(user_index)])
-        test_arr = np.zeros(shape=[len(item_index), len(user_index)])
-
-        for _, rating in train.iterrows():
-            train_arr[item_index[rating.movie_id], user_index[rating.user_id]] = rating.rating
-
-        for _, rating in test.iterrows():
-            if (rating.movie_id in item_index) & (rating.user_id in user_index):
-                test_arr[item_index[rating.movie_id], user_index[rating.user_id]] = rating.rating
-            else:
-                pass
-
-        np.save('data/_numpydata/train_arr.npy', train_arr)
-        np.save('data/_numpydata/test_arr.npy', test_arr)
-
-        return train_arr, test_arr
+    return train_matrix.as_matrix(), test_matrix.as_matrix()
