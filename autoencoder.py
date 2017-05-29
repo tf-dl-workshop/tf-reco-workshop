@@ -9,7 +9,7 @@ from tensorflow.python.estimator.inputs import numpy_io
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-train_arr, test_arr, train_eval_arr = dataprep.get_train_test()
+train_arr, test_arr, train_eval_arr = dataprep.ae_train_test()
 
 train_rating = {'ratings': train_arr.astype(np.float32)}
 test_eval_rating = {'ratings': train_eval_arr.astype(np.float32), 'targets': test_arr.astype(np.float32)}
@@ -81,7 +81,7 @@ with tf.Session() as sess:
     model_params = dict(
         n_items=train_arr.shape[0],
         n_users=train_arr.shape[1],
-        n_dims=300,
+        n_dims=20,
         l2reg=0.0001,
         learning_rate=0.0001
     )
@@ -106,7 +106,7 @@ with tf.Session() as sess:
     autoencoder_cf = Estimator(
         model_fn=auto_encoder,
         params=model_params,
-        model_dir='model/_summary/auto_rec_test',
-        config=RunConfig(save_checkpoints_secs=60))
+        model_dir='model/_summary/auto_rec_20',
+        config=RunConfig(save_checkpoints_secs=10))
 
     autoencoder_cf.fit(input_fn=train_input_fn, steps=15000, monitors=[validation_monitor, train_monitor])
