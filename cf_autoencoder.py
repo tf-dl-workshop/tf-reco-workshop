@@ -61,7 +61,7 @@ def auto_encoder(features, targets, mode, params):
         tf.summary.histogram(var.name, var)
 
     predictions = loss
-    eval_metric_ops = {'loss': loss}
+    eval_metric_ops = {'rmse': loss}
     train_op = layers.optimize_loss(
         loss=loss,
         global_step=tf.contrib.framework.get_global_step(),
@@ -77,36 +77,35 @@ def auto_encoder(features, targets, mode, params):
     return ModelFnOps(mode, predictions, loss, train_op, eval_metric_ops)
 
 
-with tf.Session() as sess:
-    model_params = dict(
-        n_items=train_arr.shape[0],
-        n_users=train_arr.shape[1],
-        n_dims=20,
-        l2reg=0.0001,
-        learning_rate=0.0001
-    )
+model_params = dict(
+    n_items=train_arr.shape[0],
+    n_users=train_arr.shape[1],
+    n_dims=20,
+    l2reg=0.0001,
+    learning_rate=0.0001
+)
 
-    # input queue for training
-    train_input_fn = numpy_io.numpy_input_fn(
-        x=train_rating, y=np.zeros(shape=[train_arr.shape[0], 1]), batch_size=256, shuffle=True, num_epochs=None)
-    # input queue for evaluation on test data
-    test_eval_input_fn = numpy_io.numpy_input_fn(
-        x=test_eval_rating, y=np.zeros(shape=[test_arr.shape[0], 1]), batch_size=test_arr.shape[0], shuffle=False,
-        num_epochs=None)
-    # input queue for evaluation on training data
-    train_eval_input_fn = numpy_io.numpy_input_fn(
-        x=train_eval_rating, y=np.zeros(shape=[test_arr.shape[0], 1]), batch_size=test_arr.shape[0], shuffle=False,
-        num_epochs=None)
+# input queue for training
+train_input_fn = numpy_io.numpy_input_fn(
+    x=train_rating, y=np.zeros(shape=[train_arr.shape[0], 1]), batch_size=256, shuffle=True, num_epochs=None)
+# input queue for evaluation on test data
+test_eval_input_fn = numpy_io.numpy_input_fn(
+    x=test_eval_rating, y=np.zeros(shape=[test_arr.shape[0], 1]), batch_size=test_arr.shape[0], shuffle=False,
+    num_epochs=None)
+# input queue for evaluation on training data
+train_eval_input_fn = numpy_io.numpy_input_fn(
+    x=train_eval_rating, y=np.zeros(shape=[test_arr.shape[0], 1]), batch_size=test_arr.shape[0], shuffle=False,
+    num_epochs=None)
 
-    validation_monitor = monitors.ValidationMonitor(input_fn=test_eval_input_fn, eval_steps=1, every_n_steps=100,
-                                                    name='test')
-    train_monitor = monitors.ValidationMonitor(input_fn=train_eval_input_fn, eval_steps=1, every_n_steps=100,
-                                               name='train')
+validation_monitor = monitors.ValidationMonitor(input_fn=test_eval_input_fn, eval_steps=1, every_n_steps=100,
+                                                name='test')
+train_monitor = monitors.ValidationMonitor(input_fn=train_eval_input_fn, eval_steps=1, every_n_steps=100,
+                                           name='train')
 
-    autoencoder_cf = Estimator(
-        model_fn=auto_encoder,
-        params=model_params,
-        model_dir='model/_summary/auto_rec_20',
-        config=RunConfig(save_checkpoints_secs=10))
+autoencoder_cf = Estimator(
+    model_fn=auto_encoder,
+    params=model_params,
+    model_dir='model/_summary/auto_rec_20',
+    config=RunConfig(save_checkpoints_secs=10))
 
-    autoencoder_cf.fit(input_fn=train_input_fn, steps=15000, monitors=[validation_monitor, train_monitor])
+autoencoder_cf.fit(input_fn=train_input_fn, steps=15000, monitors=[validation_monitor, train_monitor])

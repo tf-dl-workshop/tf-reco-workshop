@@ -44,10 +44,10 @@ def mf_train_test():
 
     train_dict['user_id'] = train.user_id.as_matrix()
     train_dict['movie_id'] = train.movie_id.as_matrix()
-    train_dict['rating'] = train.rating.as_matrix()
+    train_dict['rating'] = train.rating.as_matrix().astype(np.float32)
 
     test_dict['user_id'] = test.user_id.as_matrix()
     test_dict['movie_id'] = test.movie_id.as_matrix()
-    test_dict['rating'] = test.rating.as_matrix()
+    test_dict['rating'] = test.rating.as_matrix().astype(np.float32)
 
     return train_dict, test_dict
