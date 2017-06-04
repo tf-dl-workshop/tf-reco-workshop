@@ -108,4 +108,4 @@ autoencoder_cf = Estimator(
     model_dir='model/_summary/auto_rec_20',
     config=RunConfig(save_checkpoints_secs=10))
 
-autoencoder_cf.fit(input_fn=train_input_fn, steps=15000, monitors=[validation_monitor, train_monitor])
+autoencoder_cf.fit(input_fn=train_input_fn, steps=1000, monitors=[validation_monitor, train_monitor])
