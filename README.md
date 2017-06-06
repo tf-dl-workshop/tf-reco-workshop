@@ -14,9 +14,8 @@ Mac User: https://www.tensorflow.org/versions/r1.2/install/install_mac#installin
 
 Ubuntu User: https://www.tensorflow.org/versions/r1.2/install/install_linux#installing_with_anaconda
 
-Install scikit-learn and jupyter in the same environment you installed TensorFlow
+Install scikit-learn in the same environment you installed TensorFlow
 
 ```
 conda install scikit-learn
-conda install jupyter
 ```
